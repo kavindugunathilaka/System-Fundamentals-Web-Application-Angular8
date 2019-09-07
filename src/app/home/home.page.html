@@ -1,13 +1,41 @@
 <app-header></app-header>
 
 <ion-content padding>
-  <div class="ion-padding">
-    <!-- Home   -->
-  </div>
+  <!-- <div class="ion-padding">
+    Home  
+  </div> -->
   <!-- <app-map-component>
     
   </app-map-component> -->
-  <div id="map_canvas" >
-  
+  <!-- <div id="dum" *ngIf="dumData">
+    Data is : {{ dumData }}
+    <ion-list>
+      <ion-item *ngFor="let m of dumArray">
+        Lat : {{ m.lat }}
+        Lng : {{ m.lng }}
+        Time : {{ m.timestamp }}
+      </ion-item>
+    </ion-list> -->
+ <!-- </div>  -->
+  <br>
+  <div id="map_canvas" style="float: left;" >
+    <ion-button  color="primary" (click)="loadPositions()" *ngIf="!isTracking">
+      <ion-icon name="logo-model-s">
+      </ion-icon> Watch</ion-button>
+    <ion-button  color="primary" (click)="stopTrackingVehicle()" *ngIf="isTracking">
+      <ion-icon name="hand">
+      </ion-icon> Stop</ion-button>
   </div>
+  <div style="float: right; margin-right: 2%;">
+    <h3>Driver Application List</h3>
+    <ion-list >
+        <ion-card *ngFor="let m of dumArray">
+            <ion-card-header>
+              <ion-card-subtitle> ID : {{ m.id }}  </ion-card-subtitle>
+              <ion-card-title>Name : {{ m.name }}</ion-card-title>
+            </ion-card-header>
+          </ion-card>
+    </ion-list> 
+  </div>
+  
 </ion-content>

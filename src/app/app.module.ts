@@ -10,6 +10,11 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 // Component
 // import { HeaderComponent } from '../app/header/header/header.component';
+import { AngularFireModule } from 'angularfire2';
+import { AngularFirestore } from 'angularfire2/firestore';
+import { AngularFireStorage, AngularFireStorageModule } from 'angularfire2/storage';
+import { environment } from '../environments/environment';
+
 
 @NgModule({
   declarations: [
@@ -17,10 +22,17 @@ import { AppRoutingModule } from './app-routing.module';
     // HeaderComponent
   ],
   entryComponents: [],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    AngularFireModule.initializeApp(environment.firebase)
+  ],
   providers: [
     StatusBar,
     SplashScreen,
+    AngularFirestore,
+    AngularFireStorage,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]
