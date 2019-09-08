@@ -7,7 +7,8 @@ import {
   GoogleMapsEvent,
   Marker,
   GoogleMapsAnimation,
-  MyLocation
+  MyLocation,
+  Environment
 } from '@ionic-native/google-maps/ngx';
 
 import { map } from 'rxjs/operators';
@@ -220,7 +221,7 @@ export class HomePage implements OnInit {
   async loadPositionOfDriver(deviceID: string) {
     this.isTracking =true;
     this.locationDeviceID = deviceID;
-    alert( 'Driver Id is : ' + deviceID);
+    // alert( 'Driver Id is : ' + deviceID);
     this.driverPosSub.unsubscribe();
     this.map.clear();
 

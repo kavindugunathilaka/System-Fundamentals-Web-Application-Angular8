@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { Environment } from '@ionic-native/google-maps/ngx';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,10 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
+      Environment.setEnv({
+        'API_KEY_FOR_BROWSER_RELEASE': 'AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo',
+        'API_KEY_FOR_BROWSER_DEBUG': 'AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo'
+      });
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });
