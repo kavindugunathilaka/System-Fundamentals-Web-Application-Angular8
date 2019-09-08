@@ -7,35 +7,52 @@
   <!-- <app-map-component>
     
   </app-map-component> -->
-  <!-- <div id="dum" *ngIf="dumData">
-    Data is : {{ dumData }}
-    <ion-list>
-      <ion-item *ngFor="let m of dumArray">
-        Lat : {{ m.lat }}
-        Lng : {{ m.lng }}
-        Time : {{ m.timestamp }}
-      </ion-item>
-    </ion-list> -->
- <!-- </div>  -->
-  <br>
-  <div id="map_canvas" style="float: left;" >
-    <ion-button  color="primary" (click)="loadPositions()" *ngIf="!isTracking">
+  
+ <div  >
+  <!-- ID : {{ locationDeviceID }} -->
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <ion-button  color="primary" (click)="loadPositions()" *ngIf="!isTracking">
       <ion-icon name="logo-model-s">
       </ion-icon> Watch</ion-button>
-    <ion-button  color="primary" (click)="stopTrackingVehicle()" *ngIf="isTracking">
+    <ion-button  color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking">
       <ion-icon name="hand">
       </ion-icon> Stop</ion-button>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <ion-text color="secondary"> Device in Current View : {{locationDeviceID}}</ion-text>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <!--  -->
+        <div style="margin-left: 9%;">
+            <ion-text color="tertiary"  >
+          Status : {{ locationStatus | uppercase }} 
+        </ion-text>
+        </div>
+      <!--  -->
+ </div>
+
+  <br>
+  <div id="map_canvas" style="float: left;" >
+
   </div>
   <div style="float: right; margin-right: 2%;">
     <h3>Driver Application List</h3>
+    <!-- <h5 color="primary">{{ dumData }}</h5> -->
     <ion-list >
-        <ion-card *ngFor="let m of dumArray">
+  
+    <ion-card *ngFor="let m of deviceDataArray" padding>
+        <div  id="m.id">
             <ion-card-header>
               <ion-card-subtitle> ID : {{ m.id }}  </ion-card-subtitle>
-              <ion-card-title>Name : {{ m.name }}</ion-card-title>
-            </ion-card-header>
-          </ion-card>
-    </ion-list> 
+              </ion-card-header>
+       
+              <ion-card-content > <ion-icon name="phone-portrait"></ion-icon> {{ m.status}} </ion-card-content>
+              <ion-button  size="small" (click)="loadPositionOfDriver(m.id)" *ngIf="!isTracking">
+                <ion-icon name="logo-model-s">
+                </ion-icon> Watch</ion-button>
+              <ion-button size="small" color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking && locationDeviceID === m.id ">
+                <ion-icon name="hand">
+                </ion-icon> Stop</ion-button>
+        </div>
+      </ion-card>
+    </ion-list>
   </div>
-  
 </ion-content>

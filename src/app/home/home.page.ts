@@ -14,6 +14,7 @@ import { map } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 // import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFirestore, AngularFirestoreCollection  } from 'angularfire2/firestore';
+import { debug } from 'util';
 interface Position {
   lat: any;
   lng: any;
@@ -29,84 +30,269 @@ export class HomePage implements OnInit {
 
   map: GoogleMap;
   driverPositionCollection: AngularFirestoreCollection;
+  driversCollection: AngularFirestoreCollection;
   driverDeviceID: any = '';
   currentPosition: Observable<Position>;
   locationLat: any;
   locationLng: any;
   locationTimeStamp: any;
+  driversSubcription: Subscription;
   driverPosSub: Subscription;
   isTracking = false;
+  deviceDataArray = [];
+  deviceStatusInfo = [];
+  driverDataArray = [];
   dumData: any ;
-  dumArray = [
-    {
-      name: 'Diver 1',
-      id: '456esfdsdfa'
-    },
-    {
-      name: 'Diver 2',
-      id: '456esvfasdva'
-    },{
-      name: 'Diver 3',
-      id: 'sdgdffdsdfa'
-    },{
-      name: 'Diver 4',
-      id: '45546dfa'
-    },
-  ];
+  dumArray = [];
+  testArray = [];
   item: Observable<any>;
+  deviceDataResult: any = 'no result';
+  debugDataResult: any = 'NO RESULTS';
+  locationStatus: string;
+  locationDeviceID: string;
+  btnAble = false;
   constructor(
     private platform: Platform,
     // private fireAuth: AngularFireAuth,
     private fireStore: AngularFirestore
     ) {}
 
+  checkDeviceDataArray(id: string) {
+    let rslt: Boolean = false;
+    for (let dev of this.deviceDataArray){
+      if (dev.id === id){
+        rslt = true;
+      }
+    }
+    return rslt;
+  }
+
+  checkDeviceIndex(id: string) {
+    let rslt: number = -1;
+    let count = 0;
+    for (let dev of this.deviceDataArray){
+      if (dev.id === id){
+        rslt = count;
+      }
+      count++;
+    }
+    return rslt;
+  }
+
+  updateDeiveInfoInArray(id: string, obj: any ) {
+    let index = this.checkDeviceIndex(id);
+    this.deviceDataArray[index] = obj;
+  }
+
   async ngOnInit() {
     await this.platform.ready();
-    this.driverPositionCollection = this.fireStore
+
+    this.driversCollection = this.fireStore
     .collection(
-      `driverPostions/CebGDchYMQYtVLzD4ktZfZkJsP83/current`,
-      ref => ref.orderBy('timestamp')
+      'users'
     );
-    this.item = this.driverPositionCollection.snapshotChanges().pipe(
+    const drivers: Observable<any> = this.driversCollection.snapshotChanges()
+    .pipe(
       map( actions => actions.map( a => {
-        const d = a.payload.doc.data();
-        const di = a.payload.doc.id;
-        return { di, ...d };
+        const deviceData = a.payload.doc.data();
+        const deviceID = a.payload.doc.id;
+        return { deviceID, ...deviceData };
       }))
     );
-    // await this.item.subscribe( (data) => {
-    //   if(data.length <= 0) {
-    //     this.dumData = 'no data';
-    //   }
-    //   else {
-    //     for (let m of data){
-    //       this.locationLat = m.lat;
-    //       this.locationLng = m.lng;
-    //       this.locationTimeStamp = m.timestamp;
+
+    await drivers.subscribe( (data) => {
+      // window.location.reload();
+      if (data.length <= 0 ){
+        this.deviceDataResult = 'Negative';
+      } else {
+        this.deviceDataResult = 'Positive';
+        let count = 0;
+        for ( const device of data ) {
+          // count++;
+          // check array for id exist
+          const deviceExist = this.checkDeviceDataArray(device.deviceID);
+          if ( !deviceExist ) {
+            this.deviceDataArray.push({
+              id: device.deviceID,
+              st: device.st,
+              status: device.status
+            });
+          } else {
+            const indexOfDevice = this.checkDeviceIndex(device.deviceID);
+            if (indexOfDevice > 0){
+              this.updateDeiveInfoInArray( device.deviceID,
+                {
+                  id: device.deviceID,
+                  st: device.st,
+                  status: device.status
+                }
+                );
+              // alert('device index positive should update');
+            } else if ( indexOfDevice === -1 ) {
+              alert('No Index found for :' + device.deviceID );
+            }
+          }
+
+        }
+        for (let deviceInfoID of this.deviceDataArray) {
+          this.testArray.push(deviceInfoID.id);
+        } 
+      }
+    });
+    // Debugg purpose
+    // const debugCollection: AngularFirestoreCollection<any> = this.fireStore.collection(
+    //   'users'
+    // );
+    // const debugObse: Observable<any> = debugCollection.snapshotChanges()
+    // .pipe(
+    //   map( actions => actions.map( a => {
+    //     // const debugData = a.payload.doc.data();
+    //     const debugID = a.payload.doc.id;
+    //     return { debugID };
+    //   }))
+    // );
+    // const debugSub: Subscription = await debugObse.subscribe( (data) => {
+    //   if (data.length <= 0 ){
+    //     this.debugDataResult = 'Negative';
+    //   } else {
+    //     this.debugDataResult = 'Positive';
+    //     for ( let d of data ){
     //       this.dumArray.push({
-    //         lat: m.lat,
-    //         lng: m.lng,
-    //         timestamp: m.timestamp
+    //         id: d.debugID
     //       });
     //     }
-    //     this.dumData = 'there is data';
     //   }
     // });
 
+
+  //  normal loading only one device
+    this.driverPositionCollection = this.fireStore
+    .collection(
+        `driverPostions/DLH3xLnaFEb4J5MuONzFD9KCIJY2/current`,
+        ref => ref.orderBy('timestamp')
+      );
+  
+    this.item = this.driverPositionCollection.snapshotChanges().pipe(
+    map( actions => actions.map( a => {
+          const deviceInfoData = a.payload.doc.data();
+          const currentID = a.payload.doc.id;
+          return { currentID, ...deviceInfoData };
+        }))
+    );
+  
+    this.driverPosSub = await this.item.subscribe( (data) => {
+        let mark: Marker = null;
+        this.dumData = data;
+        if (this.markerArray.length > 1 ) {
+            this.map.clear();
+            // mark.remove();
+        }
+        if(data.length <= 0) {
+          this.dumData = 'Negative Status';
+        } else {
+          this.dumData = 'Positive Status';
+          for (let m of data){
+            this.deviceStatusInfo.push({
+              driverID: m.driverID,
+              status: m.status
+            });
+            this.locationLat = m.lat;
+            this.locationLng = m.lng;
+            this.locationTimeStamp = m.timestamp;
+            this.locationStatus = m.status;
+            this.locationDeviceID = m.driverID;
+            // this.dumArray.push({
+            //   lat: m.lat,
+            //   lng: m.lng,
+            //   timestamp: m.timestamp
+            // });
+          }
+          // set mark BEFORE PUSH
+          this.markerArray.push(mark);
+        }
+      }); 
+
     await this.loadMap();
   }
+
   markerArray = [];
+
+  async loadPositionOfDriver(deviceID: string) {
+    this.isTracking =true;
+    this.locationDeviceID = deviceID;
+    alert( 'Driver Id is : ' + deviceID);
+    this.driverPosSub.unsubscribe();
+    this.map.clear();
+
+    this.driverPositionCollection = this.fireStore
+    .collection(
+        `driverPostions/${deviceID}/current`,
+        ref => ref.orderBy('timestamp')
+      );
+
+    this.item = this.driverPositionCollection.snapshotChanges().pipe(
+    map( actions => actions.map( a => {
+          const deviceInfoData = a.payload.doc.data();
+          const currentID = a.payload.doc.id;
+          return { currentID, ...deviceInfoData };
+        }))
+    );
+    this.driverPosSub = await this.item.subscribe( (data) => {
+      let mark: Marker = null;
+      this.dumData = data;
+      if (this.markerArray.length > 1 ) {
+          this.map.clear();
+          // mark.remove();
+      }
+      if(data.length <= 0) {
+        this.dumData = 'Negative Status';
+      } else {
+        this.dumData = 'Positive Status';
+        for (let m of data){
+          this.deviceStatusInfo.push({
+            driverID: m.driverID,
+            status: m.status
+          });
+          this.locationLat = m.lat;
+          this.locationLng = m.lng;
+          this.locationTimeStamp = m.timestamp;
+          this.locationStatus = m.status;
+          this.locationDeviceID = m.driverID;
+          // this.dumArray.push({
+          //   lat: m.lat,
+          //   lng: m.lng,
+          //   timestamp: m.timestamp
+          // });
+        }
+        // set mark BEFORE PUSH
+        mark = this.map.addMarkerSync({
+          position : {
+          lat: this.locationLat,
+          lng: this.locationLng
+          },
+          icon: {
+            url: 'assets/icon/iconfinder-48.png',
+            size: {
+              width: 32,
+              height: 32
+            }
+          }
+        });
+        this.markerArray.push(mark);
+      }
+    });
+  }
 
   async loadPositions() {
     this.isTracking = true;
-    await this.item.subscribe( (data) => {
+    this.driverPosSub = await this.item.subscribe( (data) => {
       let mark: Marker = null;
-        this.dumData = data;
-        if (this.markerArray.length > 1 ) {
-          this.map.clear();
+      this.dumData = data;
+      if (this.markerArray.length > 1 ) {
+        this.map.clear();
           // mark.remove();
-        }
-      if(data.length <= 0) {
+      }
+      if ( data.length <= 0) {
         this.dumData = 'no data';
       } else {
         for (let m of data){
@@ -196,26 +382,13 @@ export class HomePage implements OnInit {
     this.map = GoogleMaps.create('map_canvas', {
       camera: {
         target: {
-          lat: 43.0741704,
-          lng: -89.3809802
+          lat: 6.8269531,
+          lng: 80.0334884
         },
-        zoom: 18,
+        zoom: 6,
         tilt: 30
       }
     });
-
   }
 
-  // ionViewDidLoad() {
-
-  //   let mapOptions = {
-  //     zoom: 13,
-  //     mapTypeId: google.maps.MapTypeId.ROADMAP
-  //   };
-
-  //   this.map = new google.maps.Map( this.mapElement.nativeElement, mapOptions );
-
-  //   let latLng = new google.maps.LaLng(43.0741704,-89.3809802);
-  //   this.map.setCenter(latLng);
-  // }
 }
