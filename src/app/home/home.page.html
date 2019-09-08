@@ -33,11 +33,21 @@
   <div id="map_canvas" style="float: left;" >
 
   </div>
-  <div style="float: right; margin-right: 2%;">
-    <h3>Driver Application List</h3>
+  <div style="
+  float: left;
+  margin-right: 2%;
+  margin-left: 2%;">
+  
+    
     <!-- <h5 color="primary">{{ dumData }}</h5> -->
     <ion-list >
-  
+      <ion-header>
+        <ion-item>
+            <ion-text color="tertiary">
+                <h3  > Driver Application List</h3>
+            </ion-text>
+        </ion-item>
+      </ion-header>
     <ion-card *ngFor="let m of deviceDataArray" padding>
         <div  id="m.id">
             <ion-card-header>
