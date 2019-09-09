@@ -7,7 +7,18 @@
   <!-- <app-map-component>
     
   </app-map-component> -->
-  
+  <div *ngIf="locationStatus === 'offline'" id="offlineReport" >
+      <ion-card padding color="danger">
+          <ion-card-title style="margin-left:43%;">
+              Device is Offline 
+        </ion-card-title>  
+        <ion-icon size="large" name="warning" style="margin-left: 48%;" ></ion-icon>
+          <br>
+      <ion-card-subtitle style="margin-left:40%;">
+          Please Select device which is Online
+          </ion-card-subtitle>
+      </ion-card>
+    </div>
  <div  >
   <!-- ID : {{ locationDeviceID }} -->
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -33,18 +44,7 @@
 
   
   <div id="map_canvas" style="float: left;" >
-    <div *ngIf="locationStatus === 'offline'">
-      <ion-card padding color="danger">
-          <ion-card-title style="margin-left:43%;">
-              Device is Offline 
-        </ion-card-title>  
-        <ion-icon size="large" name="warning" style="margin-left: 48%;" ></ion-icon>
-          <br>
-      <ion-card-subtitle style="margin-left:40%;">
-          Please Select device which is Online
-          </ion-card-subtitle>
-      </ion-card>
-    </div>
+    
   </div>
   
   <div style="
