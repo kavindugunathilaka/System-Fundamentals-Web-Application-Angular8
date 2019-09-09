@@ -85,6 +85,19 @@ export class HomePage implements OnInit {
     this.deviceDataArray[index] = obj;
   }
 
+  async removeDriver( id: string ) {
+    let idx = await this.checkDeviceIndex(id);
+    if (idx !== -1 ) {
+      await this.deviceDataArray.slice(idx,1);
+      await this.driversCollection.doc(id).delete();
+      await window.location.reload();
+    } else {
+      alert('Item already removed');
+    }
+    
+    
+  }
+
   async ngOnInit() {
     await this.platform.ready();
 
@@ -120,7 +133,10 @@ export class HomePage implements OnInit {
             });
           } else {
             const indexOfDevice = this.checkDeviceIndex(device.deviceID);
-            if (indexOfDevice > 0){
+            if (indexOfDevice >= 0) {
+              if ( this.locationDeviceID === device.deviceID) {
+                this.locationStatus = device.status;
+              }
               this.updateDeiveInfoInArray( device.deviceID,
                 {
                   id: device.deviceID,

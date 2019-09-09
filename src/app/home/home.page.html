@@ -30,9 +30,23 @@
  </div>
 
   <br>
-  <div id="map_canvas" style="float: left;" >
 
+  
+  <div id="map_canvas" style="float: left;" >
+    <div *ngIf="locationStatus === 'offline'">
+      <ion-card padding color="danger">
+          <ion-card-title style="margin-left:43%;">
+              Device is Offline 
+        </ion-card-title>  
+        <ion-icon size="large" name="warning" style="margin-left: 48%;" ></ion-icon>
+          <br>
+      <ion-card-subtitle style="margin-left:40%;">
+          Please Select device which is Online
+          </ion-card-subtitle>
+      </ion-card>
+    </div>
   </div>
+  
   <div style="
   float: left;
   margin-right: 2%;
@@ -57,10 +71,13 @@
               <ion-card-content > <ion-icon name="phone-portrait"></ion-icon> {{ m.status}} </ion-card-content>
               <ion-button  size="small" (click)="loadPositionOfDriver(m.id)" *ngIf="!isTracking">
                 <ion-icon name="logo-model-s">
-                </ion-icon> Watch</ion-button>
+                </ion-icon>&nbsp; Watch</ion-button>
               <ion-button size="small" color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking && locationDeviceID === m.id ">
                 <ion-icon name="hand">
-                </ion-icon> Stop</ion-button>
+                </ion-icon>&nbsp; Stop</ion-button>
+                <ion-button size="small" color="secondary" (click)="removeDriver(m.id)" >
+                    <ion-icon name="person">&nbsp;
+                    </ion-icon> Remove Driver</ion-button>
         </div>
       </ion-card>
     </ion-list>
