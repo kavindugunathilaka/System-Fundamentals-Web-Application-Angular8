@@ -2,9 +2,9 @@
 //     await this.platform.ready();
 
 //     this.driversCollection = this.fireStore
-//     .collection(
-//       'users'
-//     );
+//     .collection('users');
+//     // this.userDriverCollection = this.fireStore
+//     // .collection('driverPostions');
 //     const drivers: Observable<any> = this.driversCollection.snapshotChanges()
 //     .pipe(
 //       map( actions => actions.map( a => {
@@ -16,13 +16,11 @@
 
 //     await drivers.subscribe( (data) => {
 //       // window.location.reload();
-//       if (data.length <= 0 ){
+//       if (data.length <= 0 ) {
 //         this.deviceDataResult = 'Negative';
 //       } else {
 //         this.deviceDataResult = 'Positive';
-//         let count = 0;
 //         for ( const device of data ) {
-//           // count++;
 //           // check array for id exist
 //           const deviceExist = this.checkDeviceDataArray(device.deviceID);
 //           if ( !deviceExist ) {
@@ -33,7 +31,10 @@
 //             });
 //           } else {
 //             const indexOfDevice = this.checkDeviceIndex(device.deviceID);
-//             if (indexOfDevice > 0){
+//             if (indexOfDevice >= 0) {
+//               if ( this.locationDeviceID === device.deviceID) {
+//                 this.locationStatus = device.status;
+//               }
 //               this.updateDeiveInfoInArray( device.deviceID,
 //                 {
 //                   id: device.deviceID,
@@ -50,11 +51,10 @@
 //         }
 //         for (let deviceInfoID of this.deviceDataArray) {
 //           this.testArray.push(deviceInfoID.id);
-//         } 
+//         }
 //       }
 //     });
 
-//   //  normal loading only one device
 //     this.driverPositionCollection = this.fireStore
 //     .collection(
 //         `driverPostions/DLH3xLnaFEb4J5MuONzFD9KCIJY2/current`,
@@ -104,43 +104,13 @@
 //     await this.loadMap();
 //   }
 
-//   async loadPositions() {
-//     this.isTracking = true;
-//     await this.item.subscribe( (data) => {
-//       let mark: Marker = null;
-//       this.dumData = data;
-//       if (this.markerArray.length > 1 ) {
-//         this.map.clear();
-//           // mark.remove();
-//       }
-//       if ( data.length <= 0) {
-//         this.dumData = 'no data';
-//       } else {
-//         for (let m of data){
-//           this.locationLat = m.lat;
-//           this.locationLng = m.lng;
-//           this.locationTimeStamp = m.timestamp;
-//           // this.dumArray.push({
-//           //   lat: m.lat,
-//           //   lng: m.lng,
-//           //   timestamp: m.timestamp
-//           // });
-//         }
-//         this.dumData = 'there is data';
-//         mark = this.map.addMarkerSync({
-//           position : {
-//           lat: this.locationLat,
-//           lng: this.locationLng
-//           },
-//           icon: {
-//             url: 'assets/icon/iconfinder-48.png',
-//             size: {
-//               width: 32,
-//               height: 32
-//             }
-//           }
-//         });
-//         this.markerArray.push(mark);
-//       }
-//     });
+  
+
+
+
+//   updateDeiveInfoInArray(id: string, obj: any ) {
+//     let index = this.checkDeviceIndex(id);
+//     this.deviceDataArray[index] = obj;
 //   }
+
+

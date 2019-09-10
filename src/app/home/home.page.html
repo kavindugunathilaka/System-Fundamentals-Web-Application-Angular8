@@ -1,48 +1,29 @@
 <app-header></app-header>
 
 <ion-content padding>
-  <!-- <div class="ion-padding">
-    Home  
-  </div> -->
-  <!-- <app-map-component>
-    
-  </app-map-component> -->
-  <div *ngIf="locationStatus === 'offline'" id="offlineReport" >
-      <ion-card padding color="danger">
-          <ion-card-title style="margin-left:43%;">
-              Device is Offline 
+
+  <!-- <div *ngIf="locationStatus === 'offline' || locationStatus === null" id="offlineReport" >
+      <ion-card padding color="danger" >
+          <ion-card-title style="text-align: center;" >
+             <b>Selected device is Offline</b> 
         </ion-card-title>  
-        <ion-icon size="large" name="warning" style="margin-left: 48%;" ></ion-icon>
+        <ion-icon size="large" name="warning"  style="margin-left: 50%; margin-right: 50%;"></ion-icon>
           <br>
-      <ion-card-subtitle style="margin-left:40%;">
-          Please Select device which is Online
-          </ion-card-subtitle>
+
       </ion-card>
-    </div>
- <div  >
-  <!-- ID : {{ locationDeviceID }} -->
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <ion-button  color="primary" (click)="loadPositions()" *ngIf="!isTracking">
-      <ion-icon name="logo-model-s">
-      </ion-icon> Watch</ion-button>
-    <ion-button  color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking">
-      <ion-icon name="hand">
-      </ion-icon> Stop</ion-button>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-      <ion-text color="secondary"> Device in Current View : {{locationDeviceID}}</ion-text>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-      <!--  -->
-        <div style="margin-left: 9%;">
-            <ion-text color="tertiary"  >
-          Status : {{ locationStatus | uppercase }} 
-        </ion-text>
-        </div>
-      <!--  -->
- </div>
+    </div> -->
 
-  <br>
+  <div style="margin-left: 5%;" >
+    <ion-chip color="tertiary"  size="large" padding >
+        <ion-icon name="trash" size="large"></ion-icon>
+        <ion-title>{{ trashDataInfo }}</ion-title>
+    </ion-chip> 
+    <ion-chip color="danger"  size="large" *ngIf="locationStatus === 'offline' || locationStatus === null" padding >
+        <ion-icon name="warning" size="large"></ion-icon>
+        <ion-title>Selected device is Offline</ion-title>
+    </ion-chip>          
 
-  
+  </div>
   <div id="map_canvas" style="float: left;" >
     
   </div>
@@ -51,33 +32,36 @@
   float: left;
   margin-right: 2%;
   margin-left: 2%;">
-  
-    
-    <!-- <h5 color="primary">{{ dumData }}</h5> -->
     <ion-list >
-      <ion-header>
+      <!-- <ion-header>
         <ion-item>
             <ion-text color="tertiary">
-                <h3  > Driver Application List</h3>
+                <h3> Driver Application List :  {{ deviceDataArray.length }}</h3>
+                
             </ion-text>
         </ion-item>
-      </ion-header>
-    <ion-card *ngFor="let m of deviceDataArray" padding>
-        <div  id="m.id">
+      </ion-header> -->
+    <ion-card *ngFor="let m of deviceDataArray" padding id="m.id" [ngStyle]="{'border-style':locationDeviceID === m.id ? 'solid' : 'none' }">
+        <div>
             <ion-card-header>
               <ion-card-subtitle> ID : {{ m.id }}  </ion-card-subtitle>
               </ion-card-header>
-       
-              <ion-card-content > <ion-icon name="phone-portrait"></ion-icon> {{ m.status}} </ion-card-content>
-              <ion-button  size="small" (click)="loadPositionOfDriver(m.id)" *ngIf="!isTracking">
-                <ion-icon name="logo-model-s">
-                </ion-icon>&nbsp; Watch</ion-button>
-              <ion-button size="small" color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking && locationDeviceID === m.id ">
+    
+    <ion-card-content [ngStyle]="{'color':m.status === 'offline' ? 'red' : 'green' }" > <ion-icon name="phone-portrait"></ion-icon> {{ m.status}} </ion-card-content>
+      
+    <ion-button  size="small" (click)="loadPositionOfDriver(m.id)" *ngIf="!isTracking">
+    <ion-icon name="logo-model-s"></ion-icon>&nbsp; Watch</ion-button>
+    <ion-button size="small" color="danger" (click)="stopTrackingVehicle()" *ngIf="isTracking && locationDeviceID === m.id ">
                 <ion-icon name="hand">
                 </ion-icon>&nbsp; Stop</ion-button>
-                <ion-button size="small" color="secondary" (click)="removeDriver(m.id)" >
-                    <ion-icon name="person">&nbsp;
-                    </ion-icon> Remove Driver</ion-button>
+    &nbsp;
+    <ion-button size="small" color="secondary" >
+      <ion-icon name="locate">
+    </ion-icon> &nbsp;Veiw Records</ion-button>
+    &nbsp;
+    <ion-button size="small" color="light" (click)="removeDriver(m.id)" >
+      <ion-icon name="person">
+    </ion-icon> &nbsp;Remove Driver</ion-button>
         </div>
       </ion-card>
     </ion-list>

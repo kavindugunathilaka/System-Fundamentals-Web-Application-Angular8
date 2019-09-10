@@ -32,6 +32,7 @@ export class HomePage implements OnInit {
   map: GoogleMap;
   driverPositionCollection: AngularFirestoreCollection;
   driversCollection: AngularFirestoreCollection;
+  userDriverCollection: AngularFirestoreCollection;
   driverDeviceID: any = '';
   currentPosition: Observable<Position>;
   locationLat: any;
@@ -49,7 +50,7 @@ export class HomePage implements OnInit {
   item: Observable<any>;
   deviceDataResult: any = 'no result';
   debugDataResult: any = 'NO RESULTS';
-  locationStatus: string;
+  locationStatus: string = null;
   locationDeviceID: string;
   btnAble = false;
   constructor(
@@ -57,6 +58,11 @@ export class HomePage implements OnInit {
     // private fireAuth: AngularFireAuth,
     private fireStore: AngularFirestore
     ) {}
+
+  checkUserValid(id: string) {
+    // firebase for records
+    this.userDriverCollection.doc(id);
+  }
 
   checkDeviceDataArray(id: string) {
     let rslt: Boolean = false;
@@ -88,23 +94,22 @@ export class HomePage implements OnInit {
   async removeDriver( id: string ) {
     let idx = await this.checkDeviceIndex(id);
     if (idx !== -1 ) {
-      await this.deviceDataArray.slice(idx,1);
+      await this.deviceDataArray.slice(idx, 1);
       await this.driversCollection.doc(id).delete();
+      await this.fireStore.collection(`driverPostions/${id}/current`).doc('currentLocate').delete();
       await window.location.reload();
     } else {
       alert('Item already removed');
     }
-    
-    
   }
 
   async ngOnInit() {
     await this.platform.ready();
 
     this.driversCollection = this.fireStore
-    .collection(
-      'users'
-    );
+    .collection('users');
+    // this.userDriverCollection = this.fireStore
+    // .collection('driverPostions');
     const drivers: Observable<any> = this.driversCollection.snapshotChanges()
     .pipe(
       map( actions => actions.map( a => {
@@ -115,15 +120,12 @@ export class HomePage implements OnInit {
     );
 
     await drivers.subscribe( (data) => {
-      // window.location.reload();
-      if (data.length <= 0 ){
+
+      if (data.length <= 0 ) {
         this.deviceDataResult = 'Negative';
       } else {
         this.deviceDataResult = 'Positive';
-        let count = 0;
         for ( const device of data ) {
-          // count++;
-          // check array for id exist
           const deviceExist = this.checkDeviceDataArray(device.deviceID);
           if ( !deviceExist ) {
             this.deviceDataArray.push({
@@ -153,7 +155,7 @@ export class HomePage implements OnInit {
         }
         for (let deviceInfoID of this.deviceDataArray) {
           this.testArray.push(deviceInfoID.id);
-        } 
+        }
       }
     });
     // Debugg purpose
@@ -230,22 +232,135 @@ export class HomePage implements OnInit {
       }); 
 
     await this.loadMap();
+    await this.loadTrash();
+  }
+
+  trashCollection: AngularFirestoreCollection<any>;
+  trashObserser: Observable<any>;
+  trashLocationSub: Subscription;
+  trashMarkerArray = [];
+  trashDataInfo: string = null;
+  async loadTrash() {
+    
+    this.trashCollection = await this.fireStore.collection('locates');
+    this.trashObserser = await this.trashCollection.snapshotChanges()
+    .pipe( map( actions => {
+      return actions.map( a => {
+        const tdata = a.payload.doc.data();
+        const tid = a.payload.doc.id;
+        return { tid, ...tdata };
+      });
+    }));
+
+    this.trashLocationSub = await this.trashObserser.subscribe( (trashData) => {
+      let trashMarker: Marker = null;
+      if ( trashData <= 0 ) {
+        alert('NO Trash Location Retrived');
+        this.trashDataInfo = 'Zero trash reported';
+      } else {
+        this.trashDataInfo = 'Trash reported : ' + trashData.length;
+        this.map.clear();
+        for ( const trash of trashData ) {
+
+          // trashMarker.setPosition({
+          //   lat: trash.glatitude,
+          //   lng: trash.glongitude
+          // });
+
+          this.map.addMarkerSync({
+            position : {
+            lat: trash.glatitude,
+            lng: trash.glongitude
+            },
+            // icon: {
+            //   url: 'assets/icon/iconfinder-48.png',
+            //   size: {
+            //     width: 32,
+            //     height: 32
+            //   }
+            // }
+          });
+
+          // const trashExist = this.checkTrashMarkerArray( trash.tid );
+          // if ( !trashExist ) {
+          //   this.trashMarkerArray.push({
+          //     id: trash.tid,
+          //     lat: trash.glatitude,
+          //     lng: trash.glongitude,
+          //     timg: trash.imgsrc,
+          //     des: trash.description
+          //   });
+          //   // addMarker and map clear
+
+          // } else {
+          //   const indexOfTrash = this.checkTrashIndex( trash.tid );
+          //   if ( indexOfTrash >= 0 ) {
+          //     // update array
+          //   } else if ( indexOfTrash == -1 ) {
+          //     // remove marker VOID code IF MAP CLEAR
+
+          //   }
+
+          // }
+        }
+
+      }
+    }
+
+    );
+  }
+
+  checkTrashIndex(id: string) {
+    let rslt: number = -1;
+    let count = 0;
+    for (let trash of this.trashMarkerArray){
+      if (trash.tid === id){
+        rslt = count;
+      }
+      count++;
+    }
+    return rslt;
+  }
+
+  checkTrashMarkerArray(id: string) {
+    let rslt: Boolean = false;
+    for (let trash of this.trashMarkerArray) {
+      if (trash.tid === id) {
+        rslt = true;
+      }
+    }
+    return rslt;
   }
 
   markerArray = [];
-
+  userMark: Marker = null;
   async loadPositionOfDriver(deviceID: string) {
     this.isTracking =true;
     this.locationDeviceID = deviceID;
     // alert( 'Driver Id is : ' + deviceID);
     this.driverPosSub.unsubscribe();
-    this.map.clear();
+    // this.trashLocationSub.unsubscribe();
+    // this.map.clear();
+
+    // this.trashLocationSub = await this.trashObserser.subscribe( (trashData) => {
+    //   if ( trashData <= 0 ) {
+    //     this.trashDataInfo = 'Zero trash reported';
+    //   } else {
+    //     this.trashDataInfo = 'Trash reported : ' + trashData.length;
+    //     this.map.clear();
+    //     for ( const trash of trashData ) {
+    //       this.map.addMarkerSync({
+    //         position : {
+    //         lat: trash.glatitude,
+    //         lng: trash.glongitude
+    //         }
+    //       });
+    //     }
+    //   }
+    // });
 
     this.driverPositionCollection = this.fireStore
-    .collection(
-        `driverPostions/${deviceID}/current`,
-        ref => ref.orderBy('timestamp')
-      );
+    .collection(`driverPostions/${deviceID}/current`);
 
     this.item = this.driverPositionCollection.snapshotChanges().pipe(
     map( actions => actions.map( a => {
@@ -255,51 +370,71 @@ export class HomePage implements OnInit {
         }))
     );
     this.driverPosSub = await this.item.subscribe( (data) => {
-      let mark: Marker = null;
-      this.dumData = data;
-      if (this.markerArray.length > 1 ) {
-          this.map.clear();
-          // mark.remove();
-      }
-      if(data.length <= 0) {
-        this.dumData = 'Negative Status';
+      // this.dumData = data;
+      if (this.markerArray.length >= 1 ) {
+          // this.map.clear();
+          const prevMarker: Marker = this.markerArray.pop();
+          prevMarker.remove();
       } else {
-        this.dumData = 'Positive Status';
-        for (let m of data){
-          this.deviceStatusInfo.push({
-            driverID: m.driverID,
-            status: m.status
-          });
-          this.locationLat = m.lat;
-          this.locationLng = m.lng;
-          this.locationTimeStamp = m.timestamp;
-          this.locationStatus = m.status;
-          this.locationDeviceID = m.driverID;
-          // this.dumArray.push({
-          //   lat: m.lat,
-          //   lng: m.lng,
-          //   timestamp: m.timestamp
-          // });
-        }
-        // set mark BEFORE PUSH
-        mark = this.map.addMarkerSync({
-          position : {
-          lat: this.locationLat,
-          lng: this.locationLng
-          },
-          icon: {
-            url: 'assets/icon/iconfinder-48.png',
-            size: {
-              width: 32,
-              height: 32
-            }
-          }
-        });
-        this.markerArray.push(mark);
+
       }
+      for ( let pos of data ){
+        this.locationLat = pos.lat;
+        this.locationLng = pos.lng;
+        this.locationTimeStamp = pos.timestamp;
+        this.locationStatus = pos.status;
+        this.locationDeviceID = pos.driverID;
+      }
+      this.userMark = this.map.addMarkerSync({
+            position : {
+            lat: this.locationLat,
+            lng: this.locationLng
+            },
+            icon: {
+              url: 'assets/icon/iconfinder-48.png',
+              size: {
+                width: 32,
+                height: 32
+              }
+            }
+          });
+      this.markerArray.push(this.userMark);
+      // if(data.length <= 0) {
+      //   this.dumData = 'Negative Status';
+      // } else {
+      //   this.dumData = 'Positive Status';
+      //   for (let m of data){
+      //     this.deviceStatusInfo.push({
+      //       driverID: m.driverID,
+      //       status: m.status
+      //     });
+      //     this.locationLat = m.lat;
+      //     this.locationLng = m.lng;
+      //     this.locationTimeStamp = m.timestamp;
+      //     this.locationStatus = m.status;
+      //     this.locationDeviceID = m.driverID;
+
+      //   }
+      //   mark = this.map.addMarkerSync({
+      //     position : {
+      //     lat: this.locationLat,
+      //     lng: this.locationLng
+      //     },
+      //     icon: {
+      //       url: 'assets/icon/iconfinder-48.png',
+      //       size: {
+      //         width: 32,
+      //         height: 32
+      //       }
+      //     }
+      //   });
+        //  ----- Feature if only one driver user is selected 
+        // this.map.setCameraTarget(mark.getPosition());
+        
+        // this.markerArray.push(this.userMark);
     });
   }
-
+  
   async loadPositions() {
     this.isTracking = true;
     this.driverPosSub = await this.item.subscribe( (data) => {
@@ -307,7 +442,6 @@ export class HomePage implements OnInit {
       this.dumData = data;
       if (this.markerArray.length > 1 ) {
         this.map.clear();
-          // mark.remove();
       }
       if ( data.length <= 0) {
         this.dumData = 'no data';
@@ -316,11 +450,6 @@ export class HomePage implements OnInit {
           this.locationLat = m.lat;
           this.locationLng = m.lng;
           this.locationTimeStamp = m.timestamp;
-          // this.dumArray.push({
-          //   lat: m.lat,
-          //   lng: m.lng,
-          //   timestamp: m.timestamp
-          // });
         }
         this.dumData = 'there is data';
         mark = this.map.addMarkerSync({
@@ -389,7 +518,8 @@ export class HomePage implements OnInit {
   //       return { id, ...gdata };
   //     });
   //   }));
-  stopTrackingVehicle(){
+  stopTrackingVehicle() {
+    this.userMark.remove();
     this.isTracking = false;
     this.driverPosSub.unsubscribe();
   }
@@ -402,10 +532,12 @@ export class HomePage implements OnInit {
           lat: 6.8269531,
           lng: 80.0334884
         },
-        zoom: 6,
+        zoom: 7,
         tilt: 30
       }
     });
+    this.map.setTrafficEnabled(true);
   }
+
 
 }
