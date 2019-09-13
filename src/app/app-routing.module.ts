@@ -3,8 +3,9 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  // { path: '/home', redirectTo: 'home' },
+  // { path: 'personal-map/:id', redirectTo: 'personal-map' },
   { path: 'home', loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)},
+  { path: 'personal-map/:driverID', loadChildren: './pages/personal-map/personal-map.module#PersonalMapPageModule' },
 ];
 
 @NgModule({

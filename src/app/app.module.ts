@@ -15,6 +15,8 @@ import { AngularFirestore } from 'angularfire2/firestore';
 import { AngularFireStorage, AngularFireStorageModule } from 'angularfire2/storage';
 import { environment } from '../environments/environment';
 
+//pages
+import { PersonalMapPageModule } from './pages/personal-map/personal-map.module';
 
 @NgModule({
   declarations: [
@@ -26,7 +28,8 @@ import { environment } from '../environments/environment';
     BrowserModule,
     IonicModule.forRoot(),
     AppRoutingModule,
-    AngularFireModule.initializeApp(environment.firebase)
+    AngularFireModule.initializeApp(environment.firebase),
+    PersonalMapPageModule
   ],
   providers: [
     StatusBar,

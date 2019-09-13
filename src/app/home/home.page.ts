@@ -1,5 +1,5 @@
 import { Component,ViewChild, ElementRef, OnInit } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { Platform, PopoverController, LoadingController } from '@ionic/angular';
 
 import {
   GoogleMaps,
@@ -14,8 +14,13 @@ import {
 import { map } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 // import { AngularFireAuth } from 'angularfire2/auth';
-import { AngularFirestore, AngularFirestoreCollection  } from 'angularfire2/firestore';
-import { debug } from 'util';
+import { AngularFirestore, AngularFirestoreCollection, AngularFirestoreDocument  } from 'angularfire2/firestore';
+
+import { PersonalMapPage } from '../pages/personal-map/personal-map.page';
+import { ThrowStmt } from '@angular/compiler';
+import { TouchSequence } from 'selenium-webdriver';
+import { database } from 'firebase';
+
 interface Position {
   lat: any;
   lng: any;
@@ -29,7 +34,9 @@ interface Position {
 })
 export class HomePage implements OnInit {
 
+  date: Date = new Date();
   map: GoogleMap;
+  loading: any;
   driverPositionCollection: AngularFirestoreCollection;
   driversCollection: AngularFirestoreCollection;
   userDriverCollection: AngularFirestoreCollection;
@@ -53,10 +60,13 @@ export class HomePage implements OnInit {
   locationStatus: string = null;
   locationDeviceID: string;
   btnAble = false;
+  refDate: string;
   constructor(
     private platform: Platform,
     // private fireAuth: AngularFireAuth,
-    private fireStore: AngularFirestore
+    private fireStore: AngularFirestore,
+    private popoverCtrl: PopoverController,
+    private loadingCtrl: LoadingController
     ) {}
 
   checkUserValid(id: string) {
@@ -104,8 +114,13 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit() {
+    this.refDate = 'Date:' + this.date.getDate() + '-' + this.date.getMonth();
+    this.loading = await this.loadingCtrl.create({
+      message: 'Loading..',
+      spinner: 'lines'
+    });
     await this.platform.ready();
-
+    // await this.loading.present();
     this.driversCollection = this.fireStore
     .collection('users');
     // this.userDriverCollection = this.fireStore
@@ -158,31 +173,6 @@ export class HomePage implements OnInit {
         }
       }
     });
-    // Debugg purpose
-    // const debugCollection: AngularFirestoreCollection<any> = this.fireStore.collection(
-    //   'users'
-    // );
-    // const debugObse: Observable<any> = debugCollection.snapshotChanges()
-    // .pipe(
-    //   map( actions => actions.map( a => {
-    //     // const debugData = a.payload.doc.data();
-    //     const debugID = a.payload.doc.id;
-    //     return { debugID };
-    //   }))
-    // );
-    // const debugSub: Subscription = await debugObse.subscribe( (data) => {
-    //   if (data.length <= 0 ){
-    //     this.debugDataResult = 'Negative';
-    //   } else {
-    //     this.debugDataResult = 'Positive';
-    //     for ( let d of data ){
-    //       this.dumArray.push({
-    //         id: d.debugID
-    //       });
-    //     }
-    //   }
-    // });
-
 
   //  normal loading only one device
     this.driverPositionCollection = this.fireStore
@@ -240,8 +230,9 @@ export class HomePage implements OnInit {
   trashLocationSub: Subscription;
   trashMarkerArray = [];
   trashDataInfo: string = null;
+  
   async loadTrash() {
-    
+
     this.trashCollection = await this.fireStore.collection('locates');
     this.trashObserser = await this.trashCollection.snapshotChanges()
     .pipe( map( actions => {
@@ -253,32 +244,19 @@ export class HomePage implements OnInit {
     }));
 
     this.trashLocationSub = await this.trashObserser.subscribe( (trashData) => {
-      let trashMarker: Marker = null;
-      if ( trashData <= 0 ) {
+      // let trashMarker: Marker = null;
+      if ( trashData.length <= 0 ) {
         alert('NO Trash Location Retrived');
         this.trashDataInfo = 'Zero trash reported';
       } else {
         this.trashDataInfo = 'Trash reported : ' + trashData.length;
         this.map.clear();
         for ( const trash of trashData ) {
-
-          // trashMarker.setPosition({
-          //   lat: trash.glatitude,
-          //   lng: trash.glongitude
-          // });
-
           this.map.addMarkerSync({
             position : {
             lat: trash.glatitude,
             lng: trash.glongitude
-            },
-            // icon: {
-            //   url: 'assets/icon/iconfinder-48.png',
-            //   size: {
-            //     width: 32,
-            //     height: 32
-            //   }
-            // }
+            }
           });
 
           // const trashExist = this.checkTrashMarkerArray( trash.tid );
@@ -435,95 +413,91 @@ export class HomePage implements OnInit {
     });
   }
   
-  async loadPositions() {
-    this.isTracking = true;
-    this.driverPosSub = await this.item.subscribe( (data) => {
-      let mark: Marker = null;
-      this.dumData = data;
-      if (this.markerArray.length > 1 ) {
-        this.map.clear();
-      }
-      if ( data.length <= 0) {
-        this.dumData = 'no data';
-      } else {
-        for (let m of data){
-          this.locationLat = m.lat;
-          this.locationLng = m.lng;
-          this.locationTimeStamp = m.timestamp;
-        }
-        this.dumData = 'there is data';
-        mark = this.map.addMarkerSync({
-          position : {
-          lat: this.locationLat,
-          lng: this.locationLng
-          },
-          icon: {
-            url: 'assets/icon/iconfinder-48.png',
-            size: {
-              width: 32,
-              height: 32
+  driverRecordsSubscription: Subscription;
+  isChkDriverRecords: Boolean = false;
+  chkingDate: string;
+  dRecordID = null;
+  dRecordTotalTrash =null;
+  recordDate : Date;
+  recordsMarkArray = []
+  rtestArray = [];
+  
+  async loadDriversRecords( id: string = 'RTVpQkDfU9gQe6ALPqX15bl7mMs2', date: string = this.refDate  ) {
+    // this.trashLocationSub.unsubscribe();
+    await this.loadDateOfRecords(id);
+    try {
+      this.map.clear();
+      this.dRecordID = id;
+      this.isChkDriverRecords = true;
+      // const chkingDate = 'Date:' + this.date.getDate() + this.date.getMonth();
+      // test data
+      this.chkingDate = date; 
+      const userDriverRecords: Observable<any> = await this.fireStore.collection(`users/${id}/${this.chkingDate}`).snapshotChanges()
+      .pipe(
+        map( actions => actions.map( a => {
+          const data = a.payload.doc.data();
+          const Dataid = a.payload.doc.id;
+          return { id, ...data };
+        }))
+      );
+  
+      this.driverRecordsSubscription = await userDriverRecords.subscribe( (cleanedTrash) => {
+          this.recordDate = this.date;
+          if ( cleanedTrash.length <= 0 ) {
+            this.dRecordTotalTrash = "Zero trash cleaned";
+            this.rtestArray = [];
+          } else {
+            this.dRecordTotalTrash = "Total trash cleaned : " + cleanedTrash.length;
+            this.rtestArray = cleanedTrash;
+            console.log('Before enter loop');
+            for ( const rec of cleanedTrash ) {
+              const recordLat = rec.lat;
+              const recordLng = rec.lng;
+              console.log('Inside the loop');
+              this.map.addMarkerSync({
+                position: {
+                  lat: recordLat,
+                  lng: recordLng
+                },
+                icon: 'green'
+              });
             }
+            
           }
-        });
-        this.markerArray.push(mark);
-      }
-    });
+       });
+    } catch (error) {
+      alert('Error loading records : ' + error.message);
+    }
+
+
+  }
+// testDocCollection: AngularFirestoreDocument ;
+testSub: Subscription;
+driverRecordsDatesArr = [];
+  async loadDateOfRecords( id: string) {
+    const Ober: Observable<any>  = this.driversCollection.doc(id).valueChanges();
+    this.testSub = await Ober.subscribe( (data) => {
+        this.driverRecordsDatesArr = data.dt;
+   } );
+
   }
 
-  loadDriverPostions() {
-    this.isTracking = true;
-    this.driverPositionCollection = this.fireStore.collection(
-      `driverPositions/CebGDchYMQYtVLzD4ktZfZkJsP83/current`
-    );
-    this.driverPosSub =this.driverPositionCollection.doc<Position>('currentLocate')
-    .valueChanges().subscribe( (data) => {
-      let mark: Marker = null;
-      this.dumData = data;
-      if (this.markerArray.length > 1 ) {
-        this.map.clear();
-        // mark.remove();
-      }
-      // try {
-        
-    //   this.locationLat = data.lat;
-    //   this.locationLng = data.lng;
-    //   this.locationTimeStamp = data.timestamp;
-    //   this.markerArray.push(mark);
-    //   mark = this.map.addMarkerSync({
-    //     position : {
-    //     lat: this.locationLat,
-    //     lng: this.locationLng
-    //   },
-    //   icon: {
-    //     url: 'assets/icon/iconfinder-48.png',
-    //     size: {
-    //       width: 32,
-    //       height: 32
-    //     }
-    //   }
-    // });
-      // } catch (error) {
-      // alert("No vehicle is tracked");
-      // this.isTracking =false;
-      // }
-    });
+  async unloadDriversRecords() {
+    this.isChkDriverRecords = false;
+    await this.testSub.unsubscribe();
+    await this.driverRecordsSubscription.unsubscribe();
+    await this.loadTrash();
   }
-    
-  // this.locateCollection = db.collection<Locate>('locates');
-  //   this.locates = this.locateCollection.snapshotChanges()
-  //   .pipe(map(actions => {
-  //     return actions.map(a => {
-  //       const gdata = a.payload.doc.data();
-  //       const id = a.payload.doc.id;
-  //       return { id, ...gdata };
-  //     });
-  //   }));
+
+
+
+
   stopTrackingVehicle() {
     this.userMark.remove();
     this.isTracking = false;
     this.driverPosSub.unsubscribe();
   }
-    
+
 
   loadMap() {
     this.map = GoogleMaps.create('map_canvas', {
@@ -537,7 +511,34 @@ export class HomePage implements OnInit {
       }
     });
     this.map.setTrafficEnabled(true);
+    // this.loading.dismiss();
   }
 
+  
+
+    // Debugg purpose
+    // const debugCollection: AngularFirestoreCollection<any> = this.fireStore.collection(
+    //   'users'
+    // );
+    // const debugObse: Observable<any> = debugCollection.snapshotChanges()
+    // .pipe(
+    //   map( actions => actions.map( a => {
+    //     // const debugData = a.payload.doc.data();
+    //     const debugID = a.payload.doc.id;
+    //     return { debugID };
+    //   }))
+    // );
+    // const debugSub: Subscription = await debugObse.subscribe( (data) => {
+    //   if (data.length <= 0 ){
+    //     this.debugDataResult = 'Negative';
+    //   } else {
+    //     this.debugDataResult = 'Positive';
+    //     for ( let d of data ){
+    //       this.dumArray.push({
+    //         id: d.debugID
+    //       });
+    //     }
+    //   }
+    // });
 
 }
