@@ -424,7 +424,7 @@ export class HomePage implements OnInit {
   
   async loadDriversRecords( id: string = 'RTVpQkDfU9gQe6ALPqX15bl7mMs2', date: string = this.refDate  ) {
     // this.trashLocationSub.unsubscribe();
-    // await this.loadDateOfRecords(id);
+    await this.loadDateOfRecords(id);
     try {
       this.map.clear();
       this.dRecordID = id;
@@ -450,7 +450,7 @@ export class HomePage implements OnInit {
             this.dRecordTotalTrash = "Total trash cleaned : " + cleanedTrash.length;
             this.rtestArray = cleanedTrash;
             for ( const rec of cleanedTrash ) {
-              this.driverRecordsDatesArr.push(rec.tm)
+              // this.driverRecordsDatesArr.push(rec.tm)
               const recordLat = rec.lat;
               const recordLng = rec.lng;
               this.map.addMarkerSync({
@@ -458,6 +458,7 @@ export class HomePage implements OnInit {
                   lat: recordLat,
                   lng: recordLng
                 },
+                title: rec.tm,
                 icon: 'green'
               });
             }
@@ -472,13 +473,13 @@ export class HomePage implements OnInit {
 // testDocCollection: AngularFirestoreDocument ;
 testSub: Subscription;
 driverRecordsDatesArr = [];
-  // async loadDateOfRecords( id: string) {
-  //   const Ober: Observable<any>  = this.driversCollection.doc(id).valueChanges();
-  //   this.testSub = await Ober.subscribe( (data) => {
-  //       this.driverRecordsDatesArr = data.dt;
-  //  } );
+  async loadDateOfRecords( id: string) {
+    const Ober: Observable<any>  = this.driversCollection.doc(id).valueChanges();
+    this.testSub = await Ober.subscribe( (data) => {
+        this.driverRecordsDatesArr = data.dt;
+   } );
 
-  // }
+  }
 
   async unloadDriversRecords() {
     this.driverRecordsDatesArr = [];
