@@ -10,7 +10,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "buildwww": "rm -rf www/ docs/; ionic cordova build browser --prod; cp src/404.html www/; cp platforms/browser/config.xml www/; mv www docs; grep -rl 'AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo' ./docs/ | xargs sed -i '' 's/AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo/AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo/g'"
+    "buildwww": "rm -rf www/ docs/; ionic cordova build browser --prod; cp src/404.html www/; cp platforms/browser/config.xml www/; mv www docs; grep -rl '(google maps api key)' ./docs/ | xargs sed -i '' 's/(google maps api key)/(google maps api key)/g'"
   },
   "private": true,
   "dependencies": {

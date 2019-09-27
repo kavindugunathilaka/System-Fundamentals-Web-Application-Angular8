@@ -259,27 +259,7 @@ export class HomePage implements OnInit {
             }
           });
 
-          // const trashExist = this.checkTrashMarkerArray( trash.tid );
-          // if ( !trashExist ) {
-          //   this.trashMarkerArray.push({
-          //     id: trash.tid,
-          //     lat: trash.glatitude,
-          //     lng: trash.glongitude,
-          //     timg: trash.imgsrc,
-          //     des: trash.description
-          //   });
-          //   // addMarker and map clear
 
-          // } else {
-          //   const indexOfTrash = this.checkTrashIndex( trash.tid );
-          //   if ( indexOfTrash >= 0 ) {
-          //     // update array
-          //   } else if ( indexOfTrash == -1 ) {
-          //     // remove marker VOID code IF MAP CLEAR
-
-          //   }
-
-          // }
         }
 
       }
@@ -315,27 +295,7 @@ export class HomePage implements OnInit {
   async loadPositionOfDriver(deviceID: string) {
     this.isTracking =true;
     this.locationDeviceID = deviceID;
-    // alert( 'Driver Id is : ' + deviceID);
     this.driverPosSub.unsubscribe();
-    // this.trashLocationSub.unsubscribe();
-    // this.map.clear();
-
-    // this.trashLocationSub = await this.trashObserser.subscribe( (trashData) => {
-    //   if ( trashData <= 0 ) {
-    //     this.trashDataInfo = 'Zero trash reported';
-    //   } else {
-    //     this.trashDataInfo = 'Trash reported : ' + trashData.length;
-    //     this.map.clear();
-    //     for ( const trash of trashData ) {
-    //       this.map.addMarkerSync({
-    //         position : {
-    //         lat: trash.glatitude,
-    //         lng: trash.glongitude
-    //         }
-    //       });
-    //     }
-    //   }
-    // });
 
     this.driverPositionCollection = this.fireStore
     .collection(`driverPostions/${deviceID}/current`);
@@ -348,9 +308,7 @@ export class HomePage implements OnInit {
         }))
     );
     this.driverPosSub = await this.item.subscribe( (data) => {
-      // this.dumData = data;
       if (this.markerArray.length >= 1 ) {
-          // this.map.clear();
           const prevMarker: Marker = this.markerArray.pop();
           prevMarker.remove();
       } else {
@@ -377,39 +335,6 @@ export class HomePage implements OnInit {
             }
           });
       this.markerArray.push(this.userMark);
-      // if(data.length <= 0) {
-      //   this.dumData = 'Negative Status';
-      // } else {
-      //   this.dumData = 'Positive Status';
-      //   for (let m of data){
-      //     this.deviceStatusInfo.push({
-      //       driverID: m.driverID,
-      //       status: m.status
-      //     });
-      //     this.locationLat = m.lat;
-      //     this.locationLng = m.lng;
-      //     this.locationTimeStamp = m.timestamp;
-      //     this.locationStatus = m.status;
-      //     this.locationDeviceID = m.driverID;
-
-      //   }
-      //   mark = this.map.addMarkerSync({
-      //     position : {
-      //     lat: this.locationLat,
-      //     lng: this.locationLng
-      //     },
-      //     icon: {
-      //       url: 'assets/icon/iconfinder-48.png',
-      //       size: {
-      //         width: 32,
-      //         height: 32
-      //       }
-      //     }
-      //   });
-        //  ----- Feature if only one driver user is selected 
-        // this.map.setCameraTarget(mark.getPosition());
-        
-        // this.markerArray.push(this.userMark);
     });
   }
   
@@ -510,34 +435,6 @@ driverRecordsDatesArr = [];
       }
     });
     this.map.setTrafficEnabled(true);
-    // this.loading.dismiss();
   }
-
-  
-
-    // Debugg purpose
-    // const debugCollection: AngularFirestoreCollection<any> = this.fireStore.collection(
-    //   'users'
-    // );
-    // const debugObse: Observable<any> = debugCollection.snapshotChanges()
-    // .pipe(
-    //   map( actions => actions.map( a => {
-    //     // const debugData = a.payload.doc.data();
-    //     const debugID = a.payload.doc.id;
-    //     return { debugID };
-    //   }))
-    // );
-    // const debugSub: Subscription = await debugObse.subscribe( (data) => {
-    //   if (data.length <= 0 ){
-    //     this.debugDataResult = 'Negative';
-    //   } else {
-    //     this.debugDataResult = 'Positive';
-    //     for ( let d of data ){
-    //       this.dumArray.push({
-    //         id: d.debugID
-    //       });
-    //     }
-    //   }
-    // });
 
 }
