@@ -21,10 +21,10 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
-      // Environment.setEnv({
-      //   'API_KEY_FOR_BROWSER_RELEASE': 'AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo',
-      //   'API_KEY_FOR_BROWSER_DEBUG': 'AIzaSyAOLYMU2aihYt2-NfPFj9f2NdrrMy1ulXo'
-      // });
+      Environment.setEnv({
+        'API_KEY_FOR_BROWSER_RELEASE': '',
+        'API_KEY_FOR_BROWSER_DEBUG': ''
+      });
       this.statusBar.styleDefault();
       this.splashScreen.hide();
     });
