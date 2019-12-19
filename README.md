@@ -1,0 +1,1 @@
+This is real time field employee tracking system. Consist of two android application developed using ionic 4, Cordova and angular 8 and a web application using angular.  All three application uses Firebase firestore as database.
